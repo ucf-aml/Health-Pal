@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatbot</title>
+    <title>Health Friend</title>
     <style>
         /* Variables for Light and Dark Mode */
         :root {
@@ -291,7 +291,7 @@
 <body>
     <div id="header">
         <button id="menu-button">☰</button>
-        <span id="chatbot-name">Virtual Doctor</span>
+        <span id="chatbot-name">Health Friend</span>
     </div>
     
     <div id="menu">
@@ -428,7 +428,7 @@
         });
 
         // Replace with your actual Google Cloud Function URL
-        const CLOUD_FUNCTION_URL = "https://us-central1-casual-ypeq.cloudfunctions.net/dialogflowHandler";
+        const CLOUD_FUNCTION_URL = "https://dialogflowhandler-667713204131.us-central1.run.app";
 
         // Send message to Cloud Function and display response
         async function sendMessage() {
@@ -497,8 +497,8 @@
             // If bot, add an icon
             if (sender === "bot") {
                 const botIcon = document.createElement("img");
-                botIcon.src = "https://i.imgur.com/XjBpxoP.jpeg"; // Make sure the path matches
-                botIcon.alt = "Virtual Doctor";
+                botIcon.src = "data:image/png;base64,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"; // Make sure the path matches
+                botIcon.alt = "Health Friend";
                 botIcon.classList.add("bot-icon");
                 containerDiv.appendChild(botIcon);
             }
