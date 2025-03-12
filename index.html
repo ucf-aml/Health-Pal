@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Pal</title>
+    <title>Digital Doctor</title>
     <style>
         /* Variables for Light and Dark Mode */
         :root {
@@ -19,15 +19,15 @@
         }
 
         .dark-mode {
-            --bg-color: #2C2F33;
-            --text-color: #E0E0E0;
-            --menu-bg: #3B3E42;
-            --menu-text: #E0E0E0;
-            --bot-bg: #3B3E42;
-            --user-bg: #4E8EF7;
-            --button-bg: #4E8EF7;
-            --button-text: #ffffff;
-            --button-hover: #3A6EC1;
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --menu-bg: #ffffff;
+            --menu-text: #000000;
+            --bot-bg: #e9ecef;
+            --user-bg: #007bff;
+            --button-bg: #ffffff;
+            --button-text: #000000;
+            --button-hover: #dddddd;
         }
 
         /* General Styles */
@@ -42,6 +42,42 @@
             align-items: center;
             flex-direction: column;
         }
+
+        /* Pop-up Styling */
+        .popup {
+            display: none; /* Hidden initially */
+            position: fixed;
+            top: 120px;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 200px;
+            background: white;
+            padding: 15px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            border-radius: 10px;
+            z-index: 2000;
+        }
+        
+        .popup-content {
+            font-size: 16px;
+            color: black;
+        }
+        
+        #popup-close {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        #popup-close:hover {
+            background: #0056b3;
+        }
+
 
         #menu {
             position: absolute;
@@ -220,11 +256,11 @@
 
         /* Send button (smaller and next to input) */
         #send-button {
-            width: 50px; /* Smaller button */
+            width: 50px;
             height: 50px;
             background: var(--button-bg);
             border: none;
-            border-radius: 50%; /* Makes it round */
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -233,7 +269,7 @@
 
         /* Paper airplane icon */
         #send-button img {
-            width: 23px; /* Icon size */
+            width: 23px;
             height: 23px;
         }
 
@@ -244,6 +280,8 @@
             width: 100%;
             justify-content: flex-start; /* Left-aligned the suggestions */
             margin-bottom: 5px; /* Add some space between suggestions and input field */
+            min-height: 75px;
+            align-items: center;
         }
 
         .suggestion {
@@ -289,9 +327,17 @@
     </style>
 </head>
 <body>
+    <!-- Pop-up Message -->
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <p>You have completed the task. If you have not finished reading the chats, please close this pop-up and finish. This will pop back up in 1 minute. Otherwise, please notify your researcher.</p>
+            <button id="popup-close">Close (If you need more time to read.)</button>
+        </div>
+    </div>
+    
     <div id="header">
         <button id="menu-button">☰</button>
-        <span id="chatbot-name">Health Pal</span>
+        <span id="chatbot-name">Digital Doctor</span>
     </div>
     
     <div id="menu">
@@ -306,10 +352,10 @@
             <option value="topic5">Hypothyroidism</option>
         </select>
 
-        <label>
+        <!--<label>
             <input type="checkbox" id="theme-toggle">
             Toggle Day/Night Mode
-        </label>
+        </label>-->
 
         <button id="refresh">Refresh Chat</button>
     </div>
@@ -320,9 +366,9 @@
             <div id="suggestions"></div>
             <div id="input-wrapper">
                 <input type="text" id="user-input" placeholder="Type a message...">
-                <button id="send-button">
+                <!---<button id="send-button">
                     <img src="https://cdn3.iconfinder.com/data/icons/infinity-ink-office/48/005_090_paper_plane_send_message-1024.png" alt="Send">
-                </button>
+                </button>--->
             </div>
         </div>
     </div>
@@ -330,107 +376,134 @@
     <script>
         const topicSuggestions = {
             topic1: [],
-            topic2: ["What Is a Heart Attack?", "What are the symptoms of a heart attack?", "What is the most common cause of a heart attack?", "What are the risk factors for heart attacks?","What are some ways to prevent heart attacks?"],
-            topic3: ["What is Hepatitis C?", "How is Hepatitis C Spread?", "What Are the Symptoms of Hepatitis C?","What Other Problems Can Hepatitis C Cause?","What Are the Treatments for Hepatitis C?"],
-            topic4: ["What kinds of cancer are more common in young adults?", "Are there ways to prevent breast cancer?", "How do I know if something on my skin might be melanoma?","How do doctors treat cancer?","What’s the difference between chemotherapy and radiotherapy?"],
-            topic5: ["What is Hypothyroidism?", "What causes hypothyroidism?", "What are the symptoms of hypothyroidism?", "What other problems can hypothyroidism cause?","What are the treatments for hypothyroidism?"],
+                    
+            topic2: [
+                { text: "What Is a Heart Attack?", intent: "a. What Is a heart attack?" },
+                { text: "What are the symptoms of a heart attack?", intent: "b. What are the symptoms of a heart attack?" },
+                { text: "What is the most common cause of a heart attack?", intent: "c. What is the most common cause of a heart attack?" },
+                { text: "What are the risk factors for heart attacks?", intent: "d. What are the risk factors for heart attacks?" },
+                { text: "What are some ways to prevent heart attacks?", intent: "e. What are some ways to prevent heart attacks?" }
+            ],
+        
+            topic3: [
+                { text: "What is Hepatitis C?", intent: "f. What is hepatitis C?" },
+                { text: "How is Hepatitis C Spread?", intent: "g. How is hepatitis C spread?" },
+                { text: "What Are the Symptoms of Hepatitis C?", intent: "h. What are the symptoms of hepatitis C?" },
+                { text: "What Other Problems Can Hepatitis C Cause?", intent: "i. What problems can hepatitis C cause?" },
+                { text: "What Are the Treatments for Hepatitis C?", intent: "j. What are the treatments for hepatitis C?" }
+            ],
+        
+            topic4: [
+                { text: "What kinds of cancer are more common in young adults?", intent: "k. What types of cancer are common among young adults?" },
+                { text: "Are there ways to prevent breast cancer?", intent: "l. Are there ways to prevent breast cancer?" },
+                { text: "How do I know if something on my skin might be melanoma?", intent: "m. How do I know if something on my skin is a melanoma or not?" },
+                { text: "How do doctors treat cancer?", intent: "n. How do doctors treat cancer?" },
+                { text: "What’s the difference between chemotherapy and radiotherapy?", intent: "o. What are the differences between chemotherapy and radiotherapy?" }
+            ],
+        
+            topic5: [
+                { text: "What is Hypothyroidism?", intent: "p. What is Hypothyroidism?" },
+                { text: "What causes hypothyroidism?", intent: "q. What causes hypothyroidism?" },
+                { text: "What are the symptoms of hypothyroidism?", intent: "r. What are the symptoms of hypothyroidism?" },
+                { text: "What other problems can hypothyroidism cause?", intent: "s. What problems can hypothyroidism cause?" },
+                { text: "What are the treatments for hypothyroidism?", intent: "t. What are the treatments for hypothyroidism?" }
+            ]
         };
 
         const availableSuggestions = {};
         const topicsDropdown = document.getElementById("topics");
         const suggestionsDiv = document.getElementById("suggestions");
         const userInput = document.getElementById("user-input");
+        const detectedIntents = new Set();
 
         function initializeChat() {
             document.getElementById("messages").innerHTML = ""; // Clear chat
-            addMessage("Greetings. Welcome to Health Pal, a professional health advisory resource. My committed purpose is to offer reliable and accessible health information to support informed decisions regarding well-being. How may I assist you today?", "bot"); // Initial message
+            addMessage("Good day Welcome to Digital Doctor, a dedicated health assistance service. My designated responsibility is to deliver credible and concise health information, thereby facilitating sound health decisions. How may I be of assistance?", "bot"); // Initial message
         }
-        
+
+        let currentSuggestions = {};
         // Initialize available suggestions
         function resetSuggestions() {
             for (let topic in topicSuggestions) {
                 // availableSuggestions[topic] = [...topicSuggestions[topic]];
-                availableSuggestions[topic] = 0; //start at the first suggestion
-                topicSuggestions[topic] = [...topicSuggestions[topic]];
+                // availableSuggestions[topic] = 0; //start at the first suggestion
+                currentSuggestions[topic] = [...topicSuggestions[topic]];
             }
         }
         resetSuggestions();
         initializeChat(); // ✅ Show initial chatbot message when page loads
-        // Display one random suggestion at a time
-        /*function displayRandomSuggestion(topic) {
-            const suggestions = availableSuggestions[topic];
-            if (!suggestions || suggestions.length === 0) {
-                suggestionsDiv.innerHTML = ""; // Clear if no suggestions are left
-                return;
-            }
-
-            let filteredSuggestions = suggestions.filter(q => q !== userInput.value); // Remove the one in the text box
-
-            // If all available suggestions match the input, return any remaining one
-            if (filteredSuggestions.length === 0) {
-                filteredSuggestions = suggestions;
-            }
-
-            const randomIndex = Math.floor(Math.random() * filteredSuggestions.length);
-            const suggestionText = filteredSuggestions[randomIndex];
-
-            suggestionsDiv.innerHTML = ""; // Clear existing suggestion
-            const suggestion = document.createElement("div");
-            suggestion.className = "suggestion";
-            suggestion.textContent = suggestionText;
-            suggestion.addEventListener("click", () => {
-                userInput.value = suggestionText; // Fill input box
-                displayRandomSuggestion(topic); // Generate a new suggestion
-            });
-            suggestionsDiv.appendChild(suggestion);
-        }*/
 
         // display next suggestion
-        function displayNextSuggestion(topic) {
-            const suggestions = topicSuggestions[topic];
+        function displayAllSuggestion(topic) {
+            const suggestions = currentSuggestions[topic];
             if (!suggestions || suggestions.length === 0) {
                 suggestionsDiv.innerHTML = ""; // Clear if no suggestions
+                console.log("No suggestions found for this topic.");
                 return;
             }
 
             // Get the next suggestion in order
-            let index = availableSuggestions[topic] % suggestions.length;
-            const suggestionText = suggestions[index];
+            //let index = availableSuggestions[topic] % suggestions.length;
+            //const suggestionText = suggestions[index];
 
             // Increment index for next time
-            availableSuggestions[topic]++;
-
+            //availableSuggestions[topic]++;
+            
+            console.log(`Found ${suggestions.length} suggestions.`);
             // Display the suggestion
             suggestionsDiv.innerHTML = ""; // Clear existing suggestion
-            if (suggestions.length > 0) {
-                const suggestion = document.createElement("div");
-                suggestion.className = "suggestion";
-                suggestion.textContent = suggestionText;
-                suggestion.addEventListener("click", () => {
-                    userInput.value = suggestionText; // Fill input box
-                    displayNextSuggestion(topic); // Show the next one in sequence
+            //if(suggestions.length > 0){
+                    // Display all remaining suggestions
+                suggestions.forEach((suggestionObj, index) => {
+                    console.log(`Adding suggestion: ${suggestionObj.text}`);
+                    const suggestionElement = document.createElement("div");
+                    suggestionElement.className = "suggestion";
+                    suggestionElement.textContent = suggestionObj.text; // Use .text property
+            
+                    // Clicking the suggestion fills the input box and removes it from the list
+                    suggestionElement.addEventListener("click", () => {
+                        console.log(`Clicked suggestion: ${suggestionObj.text}`);
+                        userInput.value = suggestionObj.text;
+                        removeSuggestion(topic, suggestionObj.text); // Call the remove function
+                    });
+            
+                    suggestionsDiv.appendChild(suggestionElement); // Append to UI
                 });
-                suggestionsDiv.appendChild(suggestion);
-            }
+            //}
+            console.log("Suggestions successfully added to UI.");
         }
 
 
         // Handle topic selection
         topicsDropdown.addEventListener("change", () => {
             const selectedTopic = topicsDropdown.value;
-            // displayRandomSuggestion(selectedTopic);
-            displayNextSuggestion(selectedTopic);
+        
+            // ✅ Prevent pop-up when switching to "Select a Topic"
+            if (selectedTopic === "topic1") {
+                console.log("Topic changed to 'Select a Topic'. Pop-up disabled.");
+                return; // Exit early to avoid pop-ups
+    }
+
+    // Save the selected topic
+    lastSelectedTopic = selectedTopic;
+
+    console.log(`Topic changed to: ${selectedTopic}`);
+    displayAllSuggestion(selectedTopic);
         });
 
         // Refresh Chat and Reset Suggestions
         document.getElementById("refresh").addEventListener("click", () => {
             resetSuggestions(); // Reset all suggestions
             suggestionsDiv.innerHTML = ""; // Clear suggestions
+            intentCounter = 0; // ✅ Reset intent counter to 0
+            popupActivated = false;
+            typingDone = false;
+            detectedIntents.clear();
             initializeChat(); // ✅ Restart chat with initial message
         });
 
         // Send message logic
-        document.getElementById("send-button").addEventListener("click", sendMessage);
+        //document.getElementById("send-button").addEventListener("click", sendMessage);
         document.getElementById("user-input").addEventListener("keypress", (e) => {
             if (e.key === "Enter") sendMessage();
         });
@@ -438,6 +511,8 @@
         // Replace with your actual Google Cloud Function URL
         const CLOUD_FUNCTION_URL = "https://dialogflowhandler-667713204131.us-central1.run.app";
 
+        let  intentCounter =0;
+        
         // Send message to Cloud Function and display response
         async function sendMessage() {
             const message = document.getElementById("user-input").value.trim();
@@ -445,6 +520,12 @@
 
             addMessage(message, "user"); // Show user message
             document.getElementById("user-input").value = ""; // Clear input field
+            const selectedTopic = topicsDropdown.value;
+            const suggestions = currentSuggestions[selectedTopic];
+            const topicText = topicsDropdown.options[topicsDropdown.selectedIndex].text; // Get topic name
+
+            // ✅ Append the topic name to the user's message
+            const modifiedMessage = `${message} ${topicText}`;
 
             try {
                 const response = await fetch(CLOUD_FUNCTION_URL, {
@@ -454,7 +535,7 @@
                     },
                     body: JSON.stringify({
                         sessionId: "test-session", // Unique session per user
-                        message: message
+                        message: modifiedMessage
                     }),
                 });
 
@@ -466,11 +547,21 @@
 
                 console.log("Raw Dialogflow Response:", data); // 👈 Logs raw output to browser console
 
-                //if (data.reply) {
-                    //addMessage(data.reply, "bot"); // Display bot response
-                //} else {
-                    //addMessage("⚠️ Error: No response from bot.", "bot");
-                //}
+                // ✅ Fix: Ensure intent is properly extracted
+                const detectedIntent = data.intent || (data.queryResult && data.queryResult.intent && data.queryResult.intent.displayName);
+                // ✅ Remove suggestion based on recognized intent
+                if (detectedIntent && !detectedIntents.has(detectedIntent)) {
+                    detectedIntents.add(detectedIntent);
+                    console.log(`Detected Intent: ${detectedIntent}`);
+                    removeSuggestionByIntent(selectedTopic, detectedIntent);
+                    intentCounter++;
+
+                    // ✅ Check if the pop-up should be shown immediately
+                    checkAndShowPopup();
+                } else {
+                    console.log("No intent detected in response.");
+                }
+                
                 if (data.richText) {
                     addMessage(data.richText, "bot"); // ✅ Use rich text if available
                 } else {
@@ -481,20 +572,71 @@
                 addMessage("⚠️ Error: Unable to connect to the server.", "bot");
             }
 
-            const selectedTopic = topicsDropdown.value;
-            const suggestions = topicSuggestions[selectedTopic];
-
             // Remove only the exact sent message from the array
-            if (suggestions) {
-                const index = suggestions.indexOf(message);
-                if (index > -1) {
-                    suggestions.splice(index, 1);
+            if (suggestions && suggestions.length > 0) {
+                const index = suggestions.findIndex(suggestion => 
+                    suggestion.text.toLowerCase() === message.toLowerCase()
+                );
+                if (index !== -1) {
+                    suggestions.splice(index, 1); // Remove the exact typed suggestion
+                    displayAllSuggestion(selectedTopic);
                 }
             }
 
             userInput.value = ""; // Clear input field
             // displayRandomSuggestion(selectedTopic); // Display next random suggestion
-            displayNextSuggestion(selectedTopic); // Display next suggestion in sequence
+            displayAllSuggestion(selectedTopic); // Display next suggestion in sequence
+        }
+
+        let popupActivated = false;
+        let typingDone = false;
+        
+        function checkAndShowPopup(topic) {
+            const selectedTopic = topicsDropdown.value;
+            // Prevent pop-up when "Select a Topic" is chosen
+            if (selectedTopic === "topic1") {
+                console.log("Pop-up disabled: 'Select a Topic' was chosen.");
+                return; // Exit function early
+            }
+        
+            // Get the remaining suggestions for the selected topic
+            //const remainingSuggestions = currentSuggestions[selectedTopic];
+        
+            // Only show pop-up if **no more suggestions remain** for a valid topic
+            //if ((!remainingSuggestions || remainingSuggestions.length === 0) && intentCounter >= 5  && !popupActivated && !typingDone) {
+                //console.log("All questions for this topic were asked. Showing pop-up...");
+                //popupActivated = true;
+                //showPopup();
+            //}
+
+            if (intentCounter >= 5 && typingDone && !popupActivated) {
+                console.log("All questions for this topic were asked. Showing pop-up...");
+                popupActivated = true;
+                setTimeout(() => {
+                    showPopup();
+                }, 5000);
+            }
+        }
+
+        function removeSuggestionByIntent(topic, detectedIntent) {
+            let suggestions = currentSuggestions[topic];
+        
+            if (suggestions && suggestions.length > 0) {
+                console.log(`Looking for intent: ${detectedIntent} in topic: ${topic}`);
+        
+                // ✅ Correct: Compare `suggestion.intent` instead of `suggestion`
+                const index = suggestions.findIndex(suggestion => 
+                    suggestion.intent && suggestion.intent.toLowerCase() === detectedIntent.toLowerCase()
+                );
+        
+                if (index !== -1) {
+                    console.log(`Found matching intent at index ${index}, removing suggestion:`, suggestions[index]);
+                    suggestions.splice(index, 1); // Remove the matching suggestion
+                    displayAllSuggestion(topic); // Refresh UI
+                } else {
+                    console.log(`No matching intent found for: ${detectedIntent}`);
+                }
+            }
         }
 
         function addMessage(text, sender) {
@@ -505,8 +647,8 @@
             // If bot, add an icon
             if (sender === "bot") {
                 const botIcon = document.createElement("img");
-                botIcon.src = "data:image/png;base64,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"; // Make sure the path matches
-                botIcon.alt = "Health Pal";
+                botIcon.src = "https://img.freepik.com/premium-vector/nurse-male-icon-vector-image-can-be-used-home-services_120816-221435.jpg?w=826"; // Make sure the path matches
+                botIcon.alt = "Digital Doctor";
                 botIcon.classList.add("bot-icon");
                 containerDiv.appendChild(botIcon);
             }
@@ -527,6 +669,26 @@
                         index++;
                         setTimeout(typeEffect, 20); // Adjust speed (lower is faster)
                         scrollToBottom(); // Ensure scrolling happens smoothly
+                    } else {
+                        // Wait for bot to finish typing, then check if all suggestions are used
+                        //setTimeout(() => {
+                            //const selectedTopic = topicsDropdown.value;
+                            //const remainingSuggestions = currentSuggestions[selectedTopic];
+            
+                            // Only show pop-up if **no more suggestions remain**
+                            //if ((!remainingSuggestions || remainingSuggestions.length === 0) && intentCounter >= 5  && !popupActivated) {
+                                //typingDone = true;
+                            //}
+                            // ✅ After typing finishes, check if all intents have been triggered
+                            if (intentCounter >= 5 && !popupActivated) {
+                                typingDone = true;
+                                setTimeout(() => {
+                                    checkAndShowPopup();
+                                }, 10000); // delay 10 seconds
+                            }
+                            
+                        //}, 40000); // Small delay for smooth transition about 500 miliseconds
+                        
                     }
                 }
                 setTimeout(typeEffect, 30); // Start typing effect immediately
@@ -538,6 +700,37 @@
 
             messageContainer.scrollTop = messageContainer.scrollHeight;
         }
+
+        function removeSuggestion(topic, messageText) {
+            let suggestions = currentSuggestions[topic];
+        
+            if (suggestions) {
+                const index = suggestions.findIndex(suggestion => suggestion.text.toLowerCase() === messageText.toLowerCase());
+                if (index !== -1) {
+                    suggestions.splice(index, 1); // Remove clicked suggestion
+                    displayAllSuggestion(topic); // Refresh UI
+                }
+            }
+        }
+
+        let popupTimeout; // Variable to store the timeout ID
+
+        function showPopup() {
+            const popup = document.getElementById("popup");
+            popup.style.display = "block"; // Show pop-up
+            
+            // ✅ Auto-show again after 2 minutes if user doesn't switch topics
+            popupTimeout = setTimeout(() => {
+                if (popup.style.display === "none") {
+                    popup.style.display = "block"; // Show again after 1 mins
+                }
+            }, 60000); // 1 minutes (60000ms)
+        }
+        
+        // ✅ Close the pop-up when the close button is clicked
+        document.getElementById("popup-close").addEventListener("click", () => {
+            document.getElementById("popup").style.display = "none";
+        });
 
         // Function to auto-scroll the chat to the latest message
         function scrollToBottom() {
@@ -562,17 +755,17 @@
         });
 
         // Toggle Day/Night mode
-        const themeToggle = document.getElementById("theme-toggle");
-        themeToggle.addEventListener("change", () => {
-            document.body.classList.toggle("dark-mode");
-            localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
-        });
+        //const themeToggle = document.getElementById("theme-toggle");
+        //themeToggle.addEventListener("change", () => {
+            //document.body.classList.toggle("dark-mode");
+            //localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
+        //});
 
         // Load saved theme preference
-        if (localStorage.getItem("theme") === "dark") {
-            document.body.classList.add("dark-mode");
-            themeToggle.checked = true;
-        }
+        //if (localStorage.getItem("theme") === "dark") {
+            //document.body.classList.add("dark-mode");
+            //themeToggle.checked = true;
+        //}
     </script>
 </body>
 </html>
