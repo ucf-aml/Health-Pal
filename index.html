@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Doctor</title>
+    <title>Health Pal</title>
     <style>
         /* Variables for Light and Dark Mode */
         :root {
@@ -337,7 +337,7 @@
     
     <div id="header">
         <button id="menu-button">☰</button>
-        <span id="chatbot-name">Digital Doctor</span>
+        <span id="chatbot-name">Health Pal</span>
     </div>
     
     <div id="menu">
@@ -418,7 +418,7 @@
 
         function initializeChat() {
             document.getElementById("messages").innerHTML = ""; // Clear chat
-            addMessage("Good day Welcome to Digital Doctor, a dedicated health assistance service. My designated responsibility is to deliver credible and concise health information, thereby facilitating sound health decisions. How may I be of assistance?", "bot"); // Initial message
+            addMessage("Greetings. Welcome to Health Pal, a professional health advisory resource. My committed purpose is to offer reliable and accessible health information to support informed decisions regarding well-being. How may I assist you today?", "bot"); // Initial message
         }
 
         let currentSuggestions = {};
@@ -648,7 +648,7 @@
             if (sender === "bot") {
                 const botIcon = document.createElement("img");
                 botIcon.src = "https://img.freepik.com/premium-vector/nurse-male-icon-vector-image-can-be-used-home-services_120816-221435.jpg?w=826"; // Make sure the path matches
-                botIcon.alt = "Digital Doctor";
+                botIcon.alt = "Health Pal";
                 botIcon.classList.add("bot-icon");
                 containerDiv.appendChild(botIcon);
             }
